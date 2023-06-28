@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cities</title>
+
+    <link rel="stylesheet" href="/css/main.css">
+    <script src="/js/jquery-3.7.0.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/city-info-list.js"></script>
+
+</head>
+<body>
+
+<div class="content-row">
+    <div class="content-column main-content-column-left">
+        <table>
+            <thead>
+            <tr>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="cityInfo : ${cityInfoList}">
+                <td>
+                    <span class="content-link" th:text="${cityInfo.getName()}"
+                          th:attr="data-id=${cityInfo.getId()}"></span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="content-column content-column-right">
+        <fieldset th:each="cityInfo : ${cityInfoList}" th:attr="data-id=${cityInfo.getId()}">
+            <!--<span th:text="${cityInfo.getId()} + '. '"></span>-->
+            <span th:text="${cityInfo.getName()}"></span>
+            <span> (<a th:href="@{/city-info-editor(id=${cityInfo.getId})}">Edit</a>)</span>
+            <br/>
+            <table>
+                <thead>
+                <tr>
+                    <th></th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>мастерские:</td>
+                    <td th:text="${cityInfo.getManufactories()}"></td>
+                </tr>
+                <tr>
+                    <td>избыток:</td>
+                    <td th:text="${cityInfo.getSurplus()}"></td>
+                </tr>
+                <tr>
+                    <td>потребляет:</td>
+                    <td th:text="${cityInfo.getDeficit()}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </fieldset>
+    </div>
+</div>
+
+
+</body>
+</html>
