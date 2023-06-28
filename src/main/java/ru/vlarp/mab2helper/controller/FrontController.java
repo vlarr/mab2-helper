@@ -27,6 +27,7 @@ public class FrontController {
 
     @GetMapping("city-info-list")
     public String cityInfoListPage(Model model) {
+        defaultCityInfoDao.upload();
         var cityInfoList = defaultCityInfoDao.getCityInfoList();
         cityInfoList.sort(Comparator.comparing(CityInfo::getName));
         var cityNameList = cityInfoList.stream().map(CityInfo::getName).toList();
