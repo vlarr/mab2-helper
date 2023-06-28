@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Cities</title>
+    <title>M&B2 Trade Helper: Города</title>
 
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/city-info-list.css">
@@ -13,29 +13,41 @@
 <body>
 
 <div class="content-row">
-    <div class="content-column main-content-column-left">
-        <table>
-            <thead>
-            <tr>
-                <th></th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="cityInfo : ${cityInfoList}">
-                <td>
+    <div class="content-column content-column-left">
+        <fieldset>
+            <a th:href="@{/home}">Домой</a>
+            <br/>
+            <a th:href="@{/city-info-list}">Сортировка по имени</a>
+        </fieldset>
+
+        <fieldset>
+            <legend>Список:</legend>
+            <table>
+                <thead>
+                <tr>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="cityInfo : ${cityInfoList}">
+                    <td>
                     <span class="content-link" th:text="${cityInfo.getName()}"
-                          th:attr="data-id=${cityInfo.getId()}"></span>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+                          th:attr="data-city-id=${cityInfo.getId()}"></span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </fieldset>
+
     </div>
     <div class="content-column content-column-right">
-        <fieldset th:each="cityInfo : ${cityInfoList}" th:attr="data-id=${cityInfo.getId()}">
+        <fieldset th:each="cityInfo : ${cityInfoList}" th:attr="data-city-id=${cityInfo.getId()}">
             <legend>
                 <span th:text="${cityInfo.getId()} + ', '"></span>
                 <span th:text="${cityInfo.getName()}"></span>
-                <span> (<a th:href="@{/city-info-editor(id=${cityInfo.getId})}">Edit</a>)</span>
+                <span> (<a th:href="@{/city-info-editor(id=${cityInfo.getId})}">Edit</a>, <a
+                        th:href="@{/city-info-list(selected_city_id=${cityInfo.getId})}">Select</a>)</span>
+
             </legend>
             <table>
                 <thead>
@@ -47,15 +59,26 @@
                 <tbody>
                 <tr>
                     <td class="cell-name">мастерские:</td>
-                    <td th:text="${cityInfo.getManufactories()}"></td>
+                    <td>
+                        <span th:each="workshopItem, itemStat : ${cityInfo.getWorkshops()}" class="workshop-item"
+                              th:text="${workshopItem} + ${itemStat.last == true ? '' : ', '}"></span>
+                    </td>
                 </tr>
                 <tr>
                     <td class="cell-name">избыток:</td>
-                    <td th:text="${cityInfo.getSurplus()}"></td>
+                    <td>
+                        <span th:each="surplusItem, itemStat : ${cityInfo.getSurplus()}" class="surplus-item"
+                              th:classappend="${surplusItem.isSelected() ? 'surplus-item-selected' : ''}"
+                              th:text="${surplusItem} + ${itemStat.last == true ? '' : ', '}"></span>
+                    </td>
                 </tr>
                 <tr>
                     <td class="cell-name">потребляет:</td>
-                    <td th:text="${cityInfo.getDeficit()}"></td>
+                    <td>
+                        <span th:each="deficitItem, itemStat : ${cityInfo.getDeficit()}" class="deficit-item"
+                              th:classappend="${deficitItem.isSelected() ? 'deficit-item-selected' : ''}"
+                              th:text="${deficitItem} + ${itemStat.last == true ? '' : ', '}"></span>
+                    </td>
                 </tr>
                 </tbody>
             </table>

@@ -1,0 +1,8 @@
+.cell-name {
+    text-align: right;
+    padding: 0 5px;
+}
+
+.input-with-long-string {
+    width: calc(100vw - 50px);
+}

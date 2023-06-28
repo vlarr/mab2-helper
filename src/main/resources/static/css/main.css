@@ -1,3 +1,26 @@
 * {
     font-family: "Liberation Sans", monospace;
 }
+
+.content-column {
+    float: left;
+    /*padding: 10px;*/
+}
+
+.content-column-left {
+    max-height: calc(100vh - 10px);
+    width: 200px;
+}
+
+.content-column-right {
+    height: calc(100vh - 10px);
+    width: calc(100vw - 250px);
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+/*.content-row:after {*/
+/*    content: "";*/
+/*    display: table;*/
+/*    clear: both;*/
+/*}*/
