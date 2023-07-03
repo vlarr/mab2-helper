@@ -1,27 +1,23 @@
-* {
-    font-family: "Liberation Sans", monospace;
-}
-
 table {
     border-collapse: collapse;
     /*border: 1px solid black;*/
 }
 
-.content-column {
-    float: left;
-    padding: 10px;
+.workshop-item {
 }
 
-.content-column-right {
-    height: calc(100vh - 40px);
-    overflow-y: scroll;
-    overflow-x: hidden;
+.surplus-item {
 }
 
-.content-row:after {
-    content: "";
-    display: table;
-    clear: both;
+.surplus-item-selected {
+    background: #ddffdd;
+}
+
+.deficit-item {
+}
+
+.deficit-item-selected {
+    background: #ffdddd;
 }
 
 .cell-name {

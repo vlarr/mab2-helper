@@ -1,4 +1,4 @@
-package ru.vlarp.mab2helper.pojo;
+package ru.vlarp.mab2helper.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,11 +9,12 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CityInfo {
+public class ExtendCityInfo {
     private Long id;
     private String name;
     private List<String> villages;
     private List<String> workshops;
-    private List<GoodsInfo> surplus;
-    private List<GoodsInfo> deficit;
+    private List<ExtendGoodsInfo> surplus;
+    private List<ExtendGoodsInfo> deficit;
+    private boolean selected;
 }
