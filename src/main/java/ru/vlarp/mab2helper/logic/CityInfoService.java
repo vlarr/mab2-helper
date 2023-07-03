@@ -17,9 +17,7 @@ public interface CityInfoService {
 
     CityInfoListValidateResult validateCityInfoAndGetResult();
 
-    Optional<CityInfo> findCityInfoById(Long id);
-
     Optional<CityInfo> findCityInfoByName(String name);
 
-    void save(CityInfo cityInfo);
+    void save(RawCityInfo rawCityInfo);
 }

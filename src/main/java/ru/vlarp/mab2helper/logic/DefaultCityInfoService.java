@@ -8,7 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.vlarp.mab2helper.dao.*;
 import ru.vlarp.mab2helper.domain.CityInfoListValidateResult;
+import ru.vlarp.mab2helper.dto.*;
 import ru.vlarp.mab2helper.mapper.CityInfoMapper;
 import ru.vlarp.mab2helper.pojo.CityInfo;
 import ru.vlarp.mab2helper.pojo.GoodsInfo;
@@ -17,58 +19,105 @@ import ru.vlarp.mab2helper.pojo.RawCityInfo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
 @Slf4j
 @Service
 public class DefaultCityInfoService implements CityInfoService {
-    private List<CityInfo> cityInfoList = new ArrayList<>();
-    private AtomicLong idCounter = new AtomicLong(1);
+    private DictCityNameDao dictCityNameDao;
+    private DictGoodsNameDao dictGoodsNameDao;
 
-    private DictionaryService dictionaryService;
+    private CityInfoDao cityInfoDao;
+    private VillageInfoDao villageInfoDao;
+    private WorkshopInfoDao workshopInfoDao;
+    private SurplusGoodsInfoDao surplusGoodsInfoDao;
+    private DeficitGoodsInfoDao deficitGoodsInfoDao;
 
     @Override
     public void initFromRawInfoList(List<RawCityInfo> rawCityInfoList) {
-        var tmpCityInfoList = rawCityInfoList.stream().map(CityInfoMapper.INSTANCE::convert).toList();
-        idCounter = new AtomicLong(1);
-        tmpCityInfoList.forEach(ci -> ci.setId(idCounter.getAndIncrement()));
-        cityInfoList = tmpCityInfoList;
+        cityInfoDao.deleteAll();
+        villageInfoDao.deleteAll();
+        workshopInfoDao.deleteAll();
+        surplusGoodsInfoDao.deleteAll();
+        deficitGoodsInfoDao.deleteAll();
+
+        for (RawCityInfo rawCityInfo : rawCityInfoList) {
+            this.save(rawCityInfo);
+        }
     }
 
     @Override
     public List<CityInfo> getCityInfoList() {
-        return cityInfoList;
-    }
-
-    @Override
-    public Optional<CityInfo> findCityInfoById(Long id) {
-        return cityInfoList.stream().filter(ci -> id.equals(ci.getId())).findAny();
+        ArrayList<CityInfo> cityInfoArrayList = new ArrayList<>();
+        for (CityInfoDto cityInfoDto : cityInfoDao.findAll()) {
+            var dto = this.findCityInfoByName(cityInfoDto.getName());
+            dto.ifPresent(cityInfoArrayList::add);
+        }
+        return cityInfoArrayList;
     }
 
     @Override
     public Optional<CityInfo> findCityInfoByName(String name) {
-        return cityInfoList.stream().filter(ci -> name.equals(ci.getName())).findAny();
+        var cityInfoDto = cityInfoDao.findByName(name);
+
+        if (cityInfoDto.isPresent()) {
+            CityInfo cityInfo = new CityInfo();
+            cityInfo.setName(name);
+            cityInfo.setVillages(villageInfoDao.findAllByCityName(name)
+                    .stream()
+                    .map(VillageInfoDto::getGoodsName)
+                    .toList()
+            );
+
+            cityInfo.setWorkshops(workshopInfoDao.findAllByCityName(name)
+                    .stream()
+                    .map(WorkshopInfoDto::getName)
+                    .toList()
+            );
+
+            cityInfo.setSurplus(surplusGoodsInfoDao.findAllByCityName(name)
+                    .stream()
+                    .map(dto -> new GoodsInfo(dto.getName(), dto.getImportant()))
+                    .toList()
+            );
+
+            cityInfo.setDeficit(deficitGoodsInfoDao.findAllByCityName(name)
+                    .stream()
+                    .map(dto -> new GoodsInfo(dto.getName(), dto.getImportant()))
+                    .toList()
+            );
+            return Optional.of(cityInfo);
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override
-    public void save(CityInfo cityInfo) {
-        if (cityInfo == null || StringUtils.isBlank(cityInfo.getName())) {
+    public void save(RawCityInfo rawCityInfo) {
+        if (rawCityInfo == null || StringUtils.isBlank(rawCityInfo.getName())) {
             throw new IllegalArgumentException();
         }
 
-        if (cityInfo.getId() == null) {
-            if (cityInfoList.stream().anyMatch(ci -> ci.getName().equals(cityInfo.getName()))) {
-                throw new IllegalArgumentException();
-            }
-            cityInfo.setId(idCounter.getAndIncrement());
-            cityInfoList.add(cityInfo);
-        } else {
-            CityInfo targetCityInfo = findCityInfoById(cityInfo.getId()).orElseThrow();
-            targetCityInfo.setVillages(cityInfo.getVillages());
-            targetCityInfo.setWorkshops(cityInfo.getWorkshops());
-            targetCityInfo.setSurplus(cityInfo.getSurplus());
-            targetCityInfo.setDeficit(cityInfo.getDeficit());
+        String cityName = rawCityInfo.getName();
+
+        cityInfoDao.deleteAllByName(cityName);
+        villageInfoDao.deleteAllByCityName(cityName);
+        workshopInfoDao.deleteAllByCityName(cityName);
+        surplusGoodsInfoDao.deleteAllByCityName(cityName);
+        deficitGoodsInfoDao.deleteAllByCityName(cityName);
+
+        cityInfoDao.save(new CityInfoDto(null, rawCityInfo.getName()));
+        for (String goodsName : CityInfoMapper.INSTANCE.splitByDefaultSeparator(rawCityInfo.getVillages())) {
+            villageInfoDao.save(new VillageInfoDto(null, rawCityInfo.getName(), goodsName));
+        }
+        for (String workshopName : CityInfoMapper.INSTANCE.splitByDefaultSeparator(rawCityInfo.getWorkshops())) {
+            workshopInfoDao.save(new WorkshopInfoDto(null, rawCityInfo.getName(), workshopName));
+        }
+        for (GoodsInfo goodsInfo : CityInfoMapper.INSTANCE.splitByDefaultSeparatorAndConvertToGoodsInfo(rawCityInfo.getSurplus())) {
+            surplusGoodsInfoDao.save(new SurplusGoodsInfoDto(null, rawCityInfo.getName(), goodsInfo.getName(), goodsInfo.isImportant()));
+        }
+        for (GoodsInfo goodsInfo : CityInfoMapper.INSTANCE.splitByDefaultSeparatorAndConvertToGoodsInfo(rawCityInfo.getDeficit())) {
+            deficitGoodsInfoDao.save(new DeficitGoodsInfoDto(null, rawCityInfo.getName(), goodsInfo.getName(), goodsInfo.isImportant()));
         }
     }
 
@@ -86,17 +135,17 @@ public class DefaultCityInfoService implements CityInfoService {
         CityInfoListValidateResult result = new CityInfoListValidateResult();
         ArrayList<String> unknownCityNameList = new ArrayList<>();
         ArrayList<String> unknownGoodsNameList = new ArrayList<>();
-        for (CityInfo cityInfo : cityInfoList) {
-            if (!dictionaryService.getCityNameSet().contains(cityInfo.getName())) {
+        for (CityInfo cityInfo : this.getCityInfoList()) {
+            if (!dictCityNameDao.findAllNames().contains(cityInfo.getName())) {
                 unknownCityNameList.add(cityInfo.getName());
             }
             for (GoodsInfo goodsInfo : cityInfo.getSurplus()) {
-                if (!dictionaryService.getGoodsNameSet().contains(goodsInfo.getName())) {
+                if (!dictGoodsNameDao.findAllNames().contains(goodsInfo.getName())) {
                     unknownGoodsNameList.add(goodsInfo.getName());
                 }
             }
             for (GoodsInfo goodsInfo : cityInfo.getDeficit()) {
-                if (!dictionaryService.getGoodsNameSet().contains(goodsInfo.getName())) {
+                if (!dictGoodsNameDao.findAllNames().contains(goodsInfo.getName())) {
                     unknownGoodsNameList.add(goodsInfo.getName());
                 }
             }
@@ -107,7 +156,37 @@ public class DefaultCityInfoService implements CityInfoService {
     }
 
     @Autowired
-    public void setDictionaryService(DictionaryService dictionaryService) {
-        this.dictionaryService = dictionaryService;
+    public void setDictCityNameDao(DictCityNameDao dictCityNameDao) {
+        this.dictCityNameDao = dictCityNameDao;
+    }
+
+    @Autowired
+    public void setDictGoodsNameDao(DictGoodsNameDao dictGoodsNameDao) {
+        this.dictGoodsNameDao = dictGoodsNameDao;
+    }
+
+    @Autowired
+    public void setCityInfoDao(CityInfoDao cityInfoDao) {
+        this.cityInfoDao = cityInfoDao;
+    }
+
+    @Autowired
+    public void setVillageInfoDao(VillageInfoDao villageInfoDao) {
+        this.villageInfoDao = villageInfoDao;
+    }
+
+    @Autowired
+    public void setWorkshopInfoDao(WorkshopInfoDao workshopInfoDao) {
+        this.workshopInfoDao = workshopInfoDao;
+    }
+
+    @Autowired
+    public void setSurplusGoodsInfoDao(SurplusGoodsInfoDao surplusGoodsInfoDao) {
+        this.surplusGoodsInfoDao = surplusGoodsInfoDao;
+    }
+
+    @Autowired
+    public void setDeficitGoodsInfoDao(DeficitGoodsInfoDao deficitGoodsInfoDao) {
+        this.deficitGoodsInfoDao = deficitGoodsInfoDao;
     }
 }

@@ -1,0 +1,12 @@
+services:
+  mab2h:
+    build:
+      context: ../.
+    ports:
+      - 8080:8080
+    volumes:
+      - mab2h-db:/app/db
+
+volumes:
+  mab2h-db:
+    external: true

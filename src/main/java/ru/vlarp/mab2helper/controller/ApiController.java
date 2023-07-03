@@ -14,7 +14,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.vlarp.mab2helper.domain.CityInfoListValidateResult;
 import ru.vlarp.mab2helper.logic.CityInfoService;
 import ru.vlarp.mab2helper.mapper.CityInfoMapper;
-import ru.vlarp.mab2helper.pojo.CityInfo;
 import ru.vlarp.mab2helper.pojo.RawCityInfo;
 
 import java.util.ArrayList;
@@ -36,12 +35,13 @@ public class ApiController {
             cityInfoService.validateRawCityInfoList(tempRawCityInfoList);
             cityInfoService.initFromRawInfoList(tempRawCityInfoList);
         } catch (Exception ex) {
-            redirectAttributes.addFlashAttribute("message", "Error upload " + file.getOriginalFilename() + "!");
-            return "redirect:/city-info-upload-form";
+            log.error(ex.getMessage());
+            redirectAttributes.addFlashAttribute("message_load_from_json", "Error upload " + file.getOriginalFilename() + "!");
+            return "redirect:/home";
         }
 
-        redirectAttributes.addFlashAttribute("message", "You successfully uploaded " + file.getOriginalFilename() + "!");
-        return "redirect:/city-info-upload-form";
+        redirectAttributes.addFlashAttribute("message_load_from_json", "You successfully uploaded " + file.getOriginalFilename() + "!");
+        return "redirect:/home";
     }
 
     @GetMapping("city-info-list/download")
@@ -56,7 +56,6 @@ public class ApiController {
     @PostMapping(value = "city-info", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public String submitCityInfo(@RequestParam MultiValueMap<String, String> paramMap) {
         log.info("call /api/city-info with {}", paramMap);
-
         RawCityInfo rawCityInfo = new RawCityInfo(
                 paramMap.getFirst("name"),
                 paramMap.getFirst("villages"),
@@ -64,11 +63,7 @@ public class ApiController {
                 paramMap.getFirst("surplus"),
                 paramMap.getFirst("deficit")
         );
-
-        CityInfo cityInfo = CityInfoMapper.INSTANCE.convert(rawCityInfo);
-        cityInfo.setId(Long.parseLong(paramMap.getFirst("id")));
-        cityInfoService.save(cityInfo);
-
+        cityInfoService.save(rawCityInfo);
         return "redirect:/city-info-list";
     }
 
@@ -77,6 +72,7 @@ public class ApiController {
     public ResponseEntity<CityInfoListValidateResult> validateCityInfoList() {
         return ResponseEntity.ok(cityInfoService.validateCityInfoAndGetResult());
     }
+
 
     @Autowired
     public void setCityInfoService(CityInfoService cityInfoService) {

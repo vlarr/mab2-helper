@@ -1,12 +1,55 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="https://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Main page</title>
+    <title>City Info List</title>
 </head>
 <body>
-<a href="/city-info-list">open city list</a>
-<br/>
-<a href="/city-info-upload-form">upload json file</a>
+
+<table>
+    <tbody>
+    <tr>
+        <td>1:</td>
+        <td>
+            <a href="/city-info-list">open city list</a>
+        </td>
+    </tr>
+
+    <tr>
+        <td>2:</td>
+        <td>
+            <form method="POST" enctype="multipart/form-data" th:action="@{/api/city-info-list/upload}">
+                <input type="file" name="file"/>
+                <input type="submit" value="Load from json file"/>
+                <span th:if="${message_load_from_json}" th:text="${message_load_from_json}"/>
+            </form>
+        </td>
+    </tr>
+
+    <tr>
+        <td>3:</td>
+        <td>
+            <a th:href="@{/api/city-info-list/validate}">validate and get result as json:</a>
+        </td>
+    </tr>
+
+    <tr>
+        <td>4:</td>
+        <td>
+            <a th:href="@{/api/city-info-list/download}">open as json</a>
+        </td>
+    </tr>
+
+    <tr>
+        <td>5:</td>
+        <td>
+            <a download="city-info-list.json" th:href="@{/api/city-info-list/download}">download as json</a>
+        </td>
+    </tr>
+
+    </tbody>
+</table>
+
+
 </body>
 </html>

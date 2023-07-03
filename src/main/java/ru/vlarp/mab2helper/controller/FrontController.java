@@ -1,18 +1,16 @@
 package ru.vlarp.mab2helper.controller;
 
-import jakarta.xml.bind.ValidationException;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import ru.vlarp.mab2helper.logic.CityInfoService;
 import ru.vlarp.mab2helper.logic.AppLogic;
+import ru.vlarp.mab2helper.logic.CityInfoService;
 import ru.vlarp.mab2helper.mapper.CityInfoMapper;
 import ru.vlarp.mab2helper.pojo.CityInfo;
 import ru.vlarp.mab2helper.pojo.RawCityInfo;
-
-import java.io.IOException;
 
 @Controller
 public class FrontController {
@@ -21,7 +19,7 @@ public class FrontController {
 
     @GetMapping("/")
     public String root() {
-        return "home";
+        return "redirect:home";
     }
 
     @GetMapping("/home")
@@ -30,27 +28,29 @@ public class FrontController {
     }
 
     @GetMapping("city-info-list")
-    public String cityInfoListPage(Model model, @RequestParam(required = false, value = "selected_city_id") Long selectedCityId) throws IOException, ValidationException {
-        if (selectedCityId == null) {
+    public String cityInfoListPage(Model model, @RequestParam(required = false, value = "selected_city_name") String selectedCityName) {
+        if (StringUtils.isBlank(selectedCityName)) {
             model.addAttribute("cityInfoList", appLogic.sortByName());
         } else {
-            model.addAttribute("cityInfoList", appLogic.sortByLinkedGoods(selectedCityId));
+            model.addAttribute("cityInfoList", appLogic.sortByLinkedGoods(selectedCityName));
         }
         return "city-info-list";
     }
 
-    @GetMapping("city-info-editor")
-    public String cityInfoEditorPage(Model model, @RequestParam Long id) {
-        CityInfo cityInfo = cityInfoService.findCityInfoById(id).orElseThrow();
+    @GetMapping("city-info/edit")
+    public String cityInfoEdit(Model model, @RequestParam String name) {
+        CityInfo cityInfo = cityInfoService.findCityInfoByName(name).orElseThrow();
         RawCityInfo rawCityInfo = CityInfoMapper.INSTANCE.toRawCityInfo(cityInfo);
         model.addAttribute("cityId", cityInfo.getId());
         model.addAttribute("rawCityInfo", rawCityInfo);
         return "city-info-editor";
     }
 
-    @GetMapping("city-info-upload-form")
-    public String cityInfoUploadForm() {
-        return "city-info-upload-form";
+    @GetMapping("city-info/new")
+    public String cityInfoNew(Model model) {
+        RawCityInfo rawCityInfo = CityInfoMapper.INSTANCE.toRawCityInfo(new CityInfo());
+        model.addAttribute("rawCityInfo", rawCityInfo);
+        return "city-info-editor";
     }
 
     @Autowired

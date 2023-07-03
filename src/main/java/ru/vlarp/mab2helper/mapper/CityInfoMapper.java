@@ -3,6 +3,7 @@ package ru.vlarp.mab2helper.mapper;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import ru.vlarp.mab2helper.dto.CityInfoDto;
 import ru.vlarp.mab2helper.pojo.CityInfo;
 import ru.vlarp.mab2helper.pojo.GoodsInfo;
 import ru.vlarp.mab2helper.pojo.RawCityInfo;
@@ -37,14 +38,14 @@ public class CityInfoMapper {
         return rawCityInfo;
     }
 
-    private List<String> splitByDefaultSeparator(String string) {
+    public List<String> splitByDefaultSeparator(String string) {
         return Arrays.stream(string.split(REGEX_DEFAULT_SEPARATOR))
                 .map(String::trim)
                 .filter(StringUtils::isNotBlank)
                 .toList();
     }
 
-    private List<GoodsInfo> splitByDefaultSeparatorAndConvertToGoodsInfo(String string) {
+    public List<GoodsInfo> splitByDefaultSeparatorAndConvertToGoodsInfo(String string) {
         return Arrays.stream(string.split(REGEX_DEFAULT_SEPARATOR))
                 .map(String::trim)
                 .filter(StringUtils::isNotBlank)

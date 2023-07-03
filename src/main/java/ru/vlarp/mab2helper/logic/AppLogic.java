@@ -31,25 +31,25 @@ public class AppLogic {
                 .toList();
     }
 
-    public List<ExtendCityInfo> sortByLinkedGoods(Long selectedCityId) {
+    public List<ExtendCityInfo> sortByLinkedGoods(String selectedCityName) {
         var idToCityInfoMap = cityInfoService.getCityInfoList().stream()
                 .map(ExtendCityInfoMapper.INSTANCE::convert)
-                .collect(Collectors.toMap(ExtendCityInfo::getId, Function.identity()));
+                .collect(Collectors.toMap(ExtendCityInfo::getName, Function.identity()));
 
-        var selectedCityInfo = idToCityInfoMap.get(selectedCityId);
+        var selectedCityInfo = idToCityInfoMap.get(selectedCityName);
 
-        Multimap<Integer, Long> numToListCityId = ArrayListMultimap.create();
+        Multimap<Integer, String> numToListCityId = ArrayListMultimap.create();
 
-        numToListCityId.put(0, selectedCityId);
+        numToListCityId.put(0, selectedCityName);
 
-        var otherCityIds = new HashSet<>(idToCityInfoMap.keySet());
-        otherCityIds.remove(selectedCityId);
+        var otherCityNames = new HashSet<>(idToCityInfoMap.keySet());
+        otherCityNames.remove(selectedCityName);
 
         Set<String> selectedSurplusGoods = selectedCityInfo.getSurplus().stream().map(ExtendGoodsInfo::getName).collect(Collectors.toSet());
         Set<String> selectedDeficitGoods = selectedCityInfo.getDeficit().stream().map(ExtendGoodsInfo::getName).collect(Collectors.toSet());
 
-        for (Long cityId : otherCityIds) {
-            var cityInfo = idToCityInfoMap.get(cityId);
+        for (String cityName : otherCityNames) {
+            var cityInfo = idToCityInfoMap.get(cityName);
 
             Set<String> deficitGoods = cityInfo.getDeficit().stream().map(ExtendGoodsInfo::getName).collect(Collectors.toSet());
             Set<String> goods1Set = Sets.intersection(selectedSurplusGoods, deficitGoods);
@@ -62,17 +62,17 @@ public class AppLogic {
             cityInfo.getSurplus().stream().filter(extendGoodsInfo -> goods2Set.contains(extendGoodsInfo.getName())).forEach(extendGoodsInfo -> extendGoodsInfo.setSelected(true));
 
             int listNum;
-            if (isSourceCity && !isTargetCity) {
+            if (!isSourceCity && isTargetCity) {
                 listNum = 1;
             } else if (isSourceCity && isTargetCity) {
                 listNum = 2;
-            } else if (!isSourceCity && isTargetCity) {
+            } else if (isSourceCity && !isTargetCity) {
                 listNum = 3;
             } else {
                 listNum = 4;
             }
 
-            numToListCityId.put(listNum, cityId);
+            numToListCityId.put(listNum, cityName);
         }
 
         ArrayList<ExtendCityInfo> resultCityInfoList = new ArrayList<>();

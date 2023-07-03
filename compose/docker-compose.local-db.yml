@@ -1,0 +1,8 @@
+services:
+  mab2h:
+    build:
+      context: ../.
+    ports:
+      - 8080:8080
+    volumes:
+      - ../local/db:/app/db
