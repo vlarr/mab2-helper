@@ -44,11 +44,13 @@
     <div class="content-column content-column-right">
         <fieldset th:each="cityInfo : ${cityInfoList}" th:attr="data-city-id=${cityInfo.getName()}">
             <legend>
-<!--                <span th:text="${cityInfo.getId()} + ', '"></span>-->
+                <!--                <span th:text="${cityInfo.getId()} + ', '"></span>-->
                 <span th:text="${cityInfo.getName()}"></span>
-                <span> (<a th:href="@{/city-info/edit(name=${cityInfo.getName})}">Edit</a>, <a
-                        th:href="@{/city-info-list(selected_city_name=${cityInfo.getName})}">Select</a>)</span>
-
+                <span>
+                    (<a th:href="@{/city-info/edit(name=${cityInfo.getName})}">Редактировать</a>, <a
+                        th:href="@{/city-info-list(selected_city_name=${cityInfo.getName})}">Выбрать целью торговли</a>, <a
+                        th:href="@{/api/city-info/delete(city_name=${cityInfo.getName})}">Удалить</a>)
+                </span>
             </legend>
             <table>
                 <thead>
@@ -58,6 +60,13 @@
                 </tr>
                 </thead>
                 <tbody>
+                <tr>
+                    <td class="cell-name">деревни:</td>
+                    <td>
+                        <span th:each="villageItem, itemStat : ${cityInfo.getVillages()}" class="village-item"
+                              th:text="${villageItem} + ${itemStat.last == true ? '' : ', '}"></span>
+                    </td>
+                </tr>
                 <tr>
                     <td class="cell-name">мастерские:</td>
                     <td>

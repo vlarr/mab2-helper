@@ -49,8 +49,8 @@ public class DefaultCityInfoService implements CityInfoService {
     @Override
     public List<CityInfo> getCityInfoList() {
         ArrayList<CityInfo> cityInfoArrayList = new ArrayList<>();
-        for (CityInfoDto cityInfoDto : cityInfoDao.findAll()) {
-            var dto = this.findCityInfoByName(cityInfoDto.getName());
+        for (String cityName : cityInfoDao.findAllNames()) {
+            var dto = this.findCityInfoByName(cityName);
             dto.ifPresent(cityInfoArrayList::add);
         }
         return cityInfoArrayList;
@@ -153,6 +153,15 @@ public class DefaultCityInfoService implements CityInfoService {
         result.setUnknownCities(unknownCityNameList);
         result.setUnknownGoods(unknownGoodsNameList);
         return result;
+    }
+
+    @Override
+    public void deleteCityInfoByCityName(String cityName) {
+        cityInfoDao.deleteAllByName(cityName);
+        villageInfoDao.deleteAllByCityName(cityName);
+        workshopInfoDao.deleteAllByCityName(cityName);
+        surplusGoodsInfoDao.deleteAllByCityName(cityName);
+        deficitGoodsInfoDao.deleteAllByCityName(cityName);
     }
 
     @Autowired

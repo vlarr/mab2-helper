@@ -53,7 +53,7 @@ public class ApiController {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(rawCityInfoList);
     }
 
-    @PostMapping(value = "city-info", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @PostMapping(value = "city-info/save", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public String submitCityInfo(@RequestParam MultiValueMap<String, String> paramMap) {
         log.info("call /api/city-info with {}", paramMap);
         RawCityInfo rawCityInfo = new RawCityInfo(
@@ -64,6 +64,12 @@ public class ApiController {
                 paramMap.getFirst("deficit")
         );
         cityInfoService.save(rawCityInfo);
+        return "redirect:/city-info-list";
+    }
+
+    @RequestMapping("city-info/delete")
+    public String deleteCityInfo(@RequestParam("city_name") String cityName) {
+        cityInfoService.deleteCityInfoByCityName(cityName);
         return "redirect:/city-info-list";
     }
 

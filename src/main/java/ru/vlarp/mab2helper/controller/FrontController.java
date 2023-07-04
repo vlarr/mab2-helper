@@ -6,14 +6,21 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import ru.vlarp.mab2helper.dao.CityInfoDao;
+import ru.vlarp.mab2helper.dao.DictCityNameDao;
 import ru.vlarp.mab2helper.logic.AppLogic;
 import ru.vlarp.mab2helper.logic.CityInfoService;
 import ru.vlarp.mab2helper.mapper.CityInfoMapper;
 import ru.vlarp.mab2helper.pojo.CityInfo;
 import ru.vlarp.mab2helper.pojo.RawCityInfo;
 
+import java.util.List;
+import java.util.Set;
+
 @Controller
 public class FrontController {
+    private DictCityNameDao dictCityNameDao;
+    private CityInfoDao cityInfoDao;
     private CityInfoService cityInfoService;
     private AppLogic appLogic;
 
@@ -43,14 +50,36 @@ public class FrontController {
         RawCityInfo rawCityInfo = CityInfoMapper.INSTANCE.toRawCityInfo(cityInfo);
         model.addAttribute("cityId", cityInfo.getId());
         model.addAttribute("rawCityInfo", rawCityInfo);
+//        model.addAttribute("dictCityNames", dictCityNameDao.findAllNames());
+        model.addAttribute("isReadonlyCityName", Boolean.TRUE);
         return "city-info-editor";
     }
 
     @GetMapping("city-info/new")
     public String cityInfoNew(Model model) {
         RawCityInfo rawCityInfo = CityInfoMapper.INSTANCE.toRawCityInfo(new CityInfo());
+
+        Set<String> existsNames = cityInfoDao.findAllNames();
+        List<String> allowedCityNames = dictCityNameDao.findAllNames()
+                .stream()
+                .filter(name -> !existsNames.contains(name))
+                .sorted()
+                .toList();
+
         model.addAttribute("rawCityInfo", rawCityInfo);
+        model.addAttribute("dictCityNames", allowedCityNames);
+        model.addAttribute("isReadonlyCityName", Boolean.FALSE);
         return "city-info-editor";
+    }
+
+    @Autowired
+    public void setDictCityNameDao(DictCityNameDao dictCityNameDao) {
+        this.dictCityNameDao = dictCityNameDao;
+    }
+
+    @Autowired
+    public void setCityInfoDao(CityInfoDao cityInfoDao) {
+        this.cityInfoDao = cityInfoDao;
     }
 
     @Autowired

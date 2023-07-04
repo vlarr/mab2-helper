@@ -20,4 +20,6 @@ public interface CityInfoService {
     Optional<CityInfo> findCityInfoByName(String name);
 
     void save(RawCityInfo rawCityInfo);
+
+    void deleteCityInfoByCityName(String cityName);
 }

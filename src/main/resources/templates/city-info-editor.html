@@ -2,7 +2,8 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
-    <title th:text="'Редактор: ' + ${rawCityInfo.getName()}"></title>
+    <title th:if="${rawCityInfo.getName()}" th:text="'Редактор города: ' + ${rawCityInfo.getName()}"></title>
+    <title th:unless="${rawCityInfo.getName()}" th:text="'Новая запись города'"></title>
 
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/city-info-editor.css">
@@ -10,21 +11,29 @@
 </head>
 <body>
 <h3>
-    <a th:href="@{city-info-list}">Назад</a>
+    <a th:href="@{/city-info-list}">Назад</a>
 </h3>
 
 
-<form th:action="@{/api/city-info}" method="post">
+<form th:action="@{/api/city-info/save}" method="post">
     <fieldset>
-        <label>
-            id:
-            <input name="id" type="text" readonly="readonly" th:value="${cityId}">
-        </label>
-        <br/>
+        <!--        <label>-->
+        <!--            id:-->
+        <!--            <input name="id" type="text" readonly="readonly" th:value="${cityId}">-->
+        <!--        </label>-->
+        <!--        <br/>-->
         <label>
             название:
             <br/>
-            <input name="name" class="input-with-long-string" type="text" th:value="${rawCityInfo.getName()}">
+            <input th:if="${isReadonlyCityName}" name="name" list="dict-city-name-list" class="input-with-long-string"
+                   type="text" readonly="readonly" th:value="${rawCityInfo.getName()}">
+            <input th:unless="${isReadonlyCityName}" name="name" list="dict-city-name-list"
+                   class="input-with-long-string"
+                   type="text"
+                   th:value="${rawCityInfo.getName()}">
+            <datalist th:unless="${isReadonlyCityName}" id="dict-city-name-list">
+                <option th:each="cityName : ${dictCityNames}" th:value="${cityName}"></option>
+            </datalist>
         </label>
         <br/>
         <label>
