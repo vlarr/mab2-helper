@@ -37,9 +37,9 @@ public class FrontController {
     @GetMapping("city-info-list")
     public String cityInfoListPage(Model model, @RequestParam(required = false, value = "selected_city_name") String selectedCityName) {
         if (StringUtils.isBlank(selectedCityName)) {
-            model.addAttribute("cityInfoList", appLogic.sortByName());
+            model.addAttribute("cityInfoList", appLogic.buildCityInfoListWithSortByName());
         } else {
-            model.addAttribute("cityInfoList", appLogic.sortByLinkedGoods(selectedCityName));
+            model.addAttribute("cityInfoList", appLogic.buildCityInfoListWithSortByLinkedGoods(selectedCityName));
         }
         return "city-info-list";
     }
@@ -50,7 +50,6 @@ public class FrontController {
         RawCityInfo rawCityInfo = CityInfoMapper.INSTANCE.toRawCityInfo(cityInfo);
         model.addAttribute("cityId", cityInfo.getId());
         model.addAttribute("rawCityInfo", rawCityInfo);
-//        model.addAttribute("dictCityNames", dictCityNameDao.findAllNames());
         model.addAttribute("isReadonlyCityName", Boolean.TRUE);
         return "city-info-editor";
     }

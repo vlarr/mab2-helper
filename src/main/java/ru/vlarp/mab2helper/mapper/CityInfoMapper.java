@@ -17,24 +17,17 @@ public class CityInfoMapper {
     public static final CityInfoMapper INSTANCE = new CityInfoMapper();
 
     public static final String REGEX_DEFAULT_SEPARATOR = " *, *";
-
-    public CityInfo convert(RawCityInfo rawCityInfo) {
-        CityInfo cityInfo = new CityInfo();
-        cityInfo.setName(rawCityInfo.getName());
-        cityInfo.setVillages(splitByDefaultSeparator(rawCityInfo.getVillages()));
-        cityInfo.setWorkshops(splitByDefaultSeparator(rawCityInfo.getWorkshops()));
-        cityInfo.setSurplus(splitByDefaultSeparatorAndConvertToGoodsInfo(rawCityInfo.getSurplus()));
-        cityInfo.setDeficit(splitByDefaultSeparatorAndConvertToGoodsInfo(rawCityInfo.getDeficit()));
-        return cityInfo;
-    }
+    public static final String DEFAULT_SEPARATOR = ", ";
 
     public RawCityInfo toRawCityInfo(CityInfo cityInfo) {
         RawCityInfo rawCityInfo = new RawCityInfo();
         rawCityInfo.setName(cityInfo.getName());
-        rawCityInfo.setVillages(String.join(", ", cityInfo.getVillages()));
-        rawCityInfo.setWorkshops(String.join(", ", cityInfo.getWorkshops()));
-        rawCityInfo.setSurplus(cityInfo.getSurplus().stream().map(GoodsInfo::simpleView).collect(Collectors.joining(", ")));
-        rawCityInfo.setDeficit(cityInfo.getDeficit().stream().map(GoodsInfo::simpleView).collect(Collectors.joining(", ")));
+        rawCityInfo.setVillages(String.join(DEFAULT_SEPARATOR, cityInfo.getVillages()));
+        rawCityInfo.setWorkshops(String.join(DEFAULT_SEPARATOR, cityInfo.getWorkshops()));
+        rawCityInfo.setSurplus(cityInfo.getSurplus().stream().map(GoodsInfo::simpleView)
+                .collect(Collectors.joining(DEFAULT_SEPARATOR)));
+        rawCityInfo.setDeficit(cityInfo.getDeficit().stream().map(GoodsInfo::simpleView)
+                .collect(Collectors.joining(DEFAULT_SEPARATOR)));
         return rawCityInfo;
     }
 

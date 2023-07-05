@@ -9,12 +9,12 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ExtendCityInfo {
+public class CityInfoView {
     private Long id;
     private String name;
     private List<String> villages;
     private List<String> workshops;
-    private List<ExtendGoodsInfo> surplus;
-    private List<ExtendGoodsInfo> deficit;
+    private List<GoodsInfoView> surplus;
+    private List<GoodsInfoView> deficit;
     private boolean selected;
 }

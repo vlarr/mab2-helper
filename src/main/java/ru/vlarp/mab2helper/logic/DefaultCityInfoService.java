@@ -17,6 +17,7 @@ import ru.vlarp.mab2helper.pojo.GoodsInfo;
 import ru.vlarp.mab2helper.pojo.RawCityInfo;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -62,7 +63,8 @@ public class DefaultCityInfoService implements CityInfoService {
 
         if (cityInfoDto.isPresent()) {
             CityInfo cityInfo = new CityInfo();
-            cityInfo.setName(name);
+            cityInfo.setId(cityInfoDto.get().getId());
+            cityInfo.setName(cityInfoDto.get().getName());
             cityInfo.setVillages(villageInfoDao.findAllByCityName(name)
                     .stream()
                     .map(VillageInfoDto::getGoodsName)
@@ -77,13 +79,13 @@ public class DefaultCityInfoService implements CityInfoService {
 
             cityInfo.setSurplus(surplusGoodsInfoDao.findAllByCityName(name)
                     .stream()
-                    .map(dto -> new GoodsInfo(dto.getName(), dto.getImportant()))
+                    .map(dto -> new GoodsInfo(dto.getName(), dto.getImportant(), dto.getPrice()))
                     .toList()
             );
 
             cityInfo.setDeficit(deficitGoodsInfoDao.findAllByCityName(name)
                     .stream()
-                    .map(dto -> new GoodsInfo(dto.getName(), dto.getImportant()))
+                    .map(dto -> new GoodsInfo(dto.getName(), dto.getImportant(), dto.getPrice()))
                     .toList()
             );
             return Optional.of(cityInfo);
@@ -114,10 +116,10 @@ public class DefaultCityInfoService implements CityInfoService {
             workshopInfoDao.save(new WorkshopInfoDto(null, rawCityInfo.getName(), workshopName));
         }
         for (GoodsInfo goodsInfo : CityInfoMapper.INSTANCE.splitByDefaultSeparatorAndConvertToGoodsInfo(rawCityInfo.getSurplus())) {
-            surplusGoodsInfoDao.save(new SurplusGoodsInfoDto(null, rawCityInfo.getName(), goodsInfo.getName(), goodsInfo.isImportant()));
+            surplusGoodsInfoDao.save(new SurplusGoodsInfoDto(null, rawCityInfo.getName(), goodsInfo.getName(), goodsInfo.isImportant(), goodsInfo.getPrice()));
         }
         for (GoodsInfo goodsInfo : CityInfoMapper.INSTANCE.splitByDefaultSeparatorAndConvertToGoodsInfo(rawCityInfo.getDeficit())) {
-            deficitGoodsInfoDao.save(new DeficitGoodsInfoDto(null, rawCityInfo.getName(), goodsInfo.getName(), goodsInfo.isImportant()));
+            deficitGoodsInfoDao.save(new DeficitGoodsInfoDto(null, rawCityInfo.getName(), goodsInfo.getName(), goodsInfo.isImportant(), goodsInfo.getPrice()));
         }
     }
 
@@ -133,11 +135,17 @@ public class DefaultCityInfoService implements CityInfoService {
 
     public CityInfoListValidateResult validateCityInfoAndGetResult() {
         CityInfoListValidateResult result = new CityInfoListValidateResult();
-        ArrayList<String> unknownCityNameList = new ArrayList<>();
-        ArrayList<String> unknownGoodsNameList = new ArrayList<>();
+        HashSet<String> unknownCityNameList = new HashSet<>();
+        HashSet<String> unknownVillageNames = new HashSet<>();
+        HashSet<String> unknownGoodsNameList = new HashSet<>();
         for (CityInfo cityInfo : this.getCityInfoList()) {
             if (!dictCityNameDao.findAllNames().contains(cityInfo.getName())) {
                 unknownCityNameList.add(cityInfo.getName());
+            }
+            for (String goodsName : cityInfo.getVillages()) {
+                if (!dictGoodsNameDao.findAllNames().contains(goodsName)) {
+                    unknownVillageNames.add(goodsName);
+                }
             }
             for (GoodsInfo goodsInfo : cityInfo.getSurplus()) {
                 if (!dictGoodsNameDao.findAllNames().contains(goodsInfo.getName())) {
@@ -151,6 +159,7 @@ public class DefaultCityInfoService implements CityInfoService {
             }
         }
         result.setUnknownCities(unknownCityNameList);
+        result.setUnknownVillages(unknownVillageNames);
         result.setUnknownGoods(unknownGoodsNameList);
         return result;
     }

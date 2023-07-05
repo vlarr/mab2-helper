@@ -6,9 +6,9 @@ import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.vlarp.mab2helper.domain.ExtendCityInfo;
-import ru.vlarp.mab2helper.domain.ExtendGoodsInfo;
-import ru.vlarp.mab2helper.mapper.ExtendCityInfoMapper;
+import ru.vlarp.mab2helper.domain.CityInfoView;
+import ru.vlarp.mab2helper.domain.GoodsInfoView;
+import ru.vlarp.mab2helper.mapper.CityInfoViewMapper;
 
 import java.util.*;
 import java.util.function.Function;
@@ -18,26 +18,28 @@ import java.util.stream.Collectors;
 @Component
 public class AppLogic {
     private CityInfoService cityInfoService;
+    private CityInfoViewMapper cityInfoViewMapper;
 
-    public void init() {
-        //TODO: init
-        log.info("init");
-    }
-
-    public List<ExtendCityInfo> sortByName() {
+    public List<CityInfoView> buildCityInfoListWithSortByName() {
         return cityInfoService.getCityInfoList().stream()
-                .map(ExtendCityInfoMapper.INSTANCE::convert)
-                .sorted(Comparator.comparing(ExtendCityInfo::getName))
+                .map(cityInfoViewMapper::convert)
+                .sorted(Comparator.comparing(CityInfoView::getName))
                 .toList();
     }
 
-    public List<ExtendCityInfo> sortByLinkedGoods(String selectedCityName) {
-        var idToCityInfoMap = cityInfoService.getCityInfoList().stream()
-                .map(ExtendCityInfoMapper.INSTANCE::convert)
-                .collect(Collectors.toMap(ExtendCityInfo::getName, Function.identity()));
+    public List<CityInfoView> buildCityInfoListWithSortByLinkedGoods(String selectedCityName) {
+        Map<String, CityInfoView> idToCityInfoMap = cityInfoService.getCityInfoList().stream()
+                .map(cityInfoViewMapper::convert)
+                .collect(Collectors.toMap(CityInfoView::getName, Function.identity()));
 
         var selectedCityInfo = idToCityInfoMap.get(selectedCityName);
 
+        //  Группы названий городов по порярядку их отображения в списке. Ключ - номер группы:
+        //  0 - выбранный город;
+        //  1 - города где есть дефицит товаров которые можно приобрести в текущем городе;
+        //  2 - города где есть дефицит товаров которые можно приобрести в текущем городе и где есть избыток товаров которые можно сбыть в выбранном городе;
+        //  3 - города где есть избыток товаров которые можно сбыть в выбранном городе;
+        //  4 - прочие города
         Multimap<Integer, String> numToListCityId = ArrayListMultimap.create();
 
         numToListCityId.put(0, selectedCityName);
@@ -45,21 +47,29 @@ public class AppLogic {
         var otherCityNames = new HashSet<>(idToCityInfoMap.keySet());
         otherCityNames.remove(selectedCityName);
 
-        Set<String> selectedSurplusGoods = selectedCityInfo.getSurplus().stream().map(ExtendGoodsInfo::getName).collect(Collectors.toSet());
-        Set<String> selectedDeficitGoods = selectedCityInfo.getDeficit().stream().map(ExtendGoodsInfo::getName).collect(Collectors.toSet());
+        Set<String> selectedSurplusGoods = selectedCityInfo.getSurplus().stream()
+                .map(GoodsInfoView::getName).collect(Collectors.toSet());
+        Set<String> selectedDeficitGoods = selectedCityInfo.getDeficit().stream()
+                .map(GoodsInfoView::getName).collect(Collectors.toSet());
 
         for (String cityName : otherCityNames) {
             var cityInfo = idToCityInfoMap.get(cityName);
 
-            Set<String> deficitGoods = cityInfo.getDeficit().stream().map(ExtendGoodsInfo::getName).collect(Collectors.toSet());
+            Set<String> deficitGoods = cityInfo.getDeficit().stream()
+                    .map(GoodsInfoView::getName).collect(Collectors.toSet());
             Set<String> goods1Set = Sets.intersection(selectedSurplusGoods, deficitGoods);
             boolean isTargetCity = !goods1Set.isEmpty();
-            cityInfo.getDeficit().stream().filter(extendGoodsInfo -> goods1Set.contains(extendGoodsInfo.getName())).forEach(extendGoodsInfo -> extendGoodsInfo.setSelected(true));
+            cityInfo.getDeficit().stream()
+                    .filter(goodsInfoView -> goods1Set.contains(goodsInfoView.getName()))
+                    .forEach(goodsInfoView -> goodsInfoView.setSelected(true));
 
-            Set<String> surplusGoods = cityInfo.getSurplus().stream().map(ExtendGoodsInfo::getName).collect(Collectors.toSet());
+            Set<String> surplusGoods = cityInfo.getSurplus().stream()
+                    .map(GoodsInfoView::getName).collect(Collectors.toSet());
             Set<String> goods2Set = Sets.intersection(selectedDeficitGoods, surplusGoods);
             boolean isSourceCity = !goods2Set.isEmpty();
-            cityInfo.getSurplus().stream().filter(extendGoodsInfo -> goods2Set.contains(extendGoodsInfo.getName())).forEach(extendGoodsInfo -> extendGoodsInfo.setSelected(true));
+            cityInfo.getSurplus().stream()
+                    .filter(goodsInfoView -> goods2Set.contains(goodsInfoView.getName()))
+                    .forEach(goodsInfoView -> goodsInfoView.setSelected(true));
 
             int listNum;
             if (!isSourceCity && isTargetCity) {
@@ -75,14 +85,13 @@ public class AppLogic {
             numToListCityId.put(listNum, cityName);
         }
 
-        ArrayList<ExtendCityInfo> resultCityInfoList = new ArrayList<>();
+        ArrayList<CityInfoView> resultCityInfoList = new ArrayList<>();
         for (Integer listNum : numToListCityId.keySet().stream().sorted().toList()) {
-            resultCityInfoList.addAll(
-                    numToListCityId.get(listNum)
-                            .stream()
-                            .map(idToCityInfoMap::get)
-                            .sorted(Comparator.comparing(ExtendCityInfo::getName))
-                            .toList()
+            resultCityInfoList.addAll(numToListCityId.get(listNum)
+                    .stream()
+                    .map(idToCityInfoMap::get)
+                    .sorted(Comparator.comparing(CityInfoView::getName))
+                    .toList()
             );
         }
 
@@ -92,5 +101,10 @@ public class AppLogic {
     @Autowired
     public void setCityInfoService(CityInfoService cityInfoService) {
         this.cityInfoService = cityInfoService;
+    }
+
+    @Autowired
+    public void setCityInfoViewMapper(CityInfoViewMapper cityInfoViewMapper) {
+        this.cityInfoViewMapper = cityInfoViewMapper;
     }
 }

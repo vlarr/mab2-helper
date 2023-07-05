@@ -3,17 +3,22 @@ package ru.vlarp.mab2helper.domain;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ExtendGoodsInfo {
+public class GoodsInfoView {
     private String name;
     private boolean important;
+    private String price;
     private boolean selected;
+    private Long orderNum;
 
     public String simpleView() {
-        return ((important) ? "!" : "") + name;
+        String importantPrefix = (important) ? "!" : "";
+        String priceSuffix = StringUtils.isBlank(price) ? "" : ("(" + price + ")");
+        return importantPrefix + name + priceSuffix;
     }
 
     @Override

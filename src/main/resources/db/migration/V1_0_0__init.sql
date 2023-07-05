@@ -1,7 +1,8 @@
-create table DICT_GOODS_NAME
+create table DICT_GOODS
 (
-    id   long auto_increment primary key,
-    name varchar2 not null unique
+    id         long auto_increment primary key,
+    name       varchar2 not null unique,
+    goods_type varchar2 not null
 );
 
 create table DICT_CITY_NAME
@@ -35,7 +36,8 @@ create table SURPLUS_GOODS_INFO
     id        long auto_increment primary key,
     city_name varchar2 not null,
     name      varchar2 not null,
-    important boolean
+    important boolean,
+    price     varchar2
 );
 
 create table DEFICIT_GOODS_INFO
@@ -43,5 +45,6 @@ create table DEFICIT_GOODS_INFO
     id        long auto_increment primary key,
     city_name varchar2 not null,
     name      varchar2 not null,
-    important boolean
+    important boolean,
+    price     varchar2
 );

@@ -21,4 +21,5 @@ public class DeficitGoodsInfoDto {
     private String cityName;
     private String name;
     private Boolean important;
+    private String price;
 }

@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>M&B2 Trade Helper: Города</title>
+    <title>M&B2 Trade Tool: Города</title>
 
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/city-info-list.css">
@@ -42,7 +42,7 @@
 
     </div>
     <div class="content-column content-column-right">
-        <fieldset th:each="cityInfo : ${cityInfoList}" th:attr="data-city-id=${cityInfo.getName()}">
+        <fieldset th:each="cityInfo : ${cityInfoList}" th:attr="data-city-id=${cityInfo.getName()}" th:id="'city-info-' + ${cityInfo.getId()}">
             <legend>
                 <!--                <span th:text="${cityInfo.getId()} + ', '"></span>-->
                 <span th:text="${cityInfo.getName()}"></span>
