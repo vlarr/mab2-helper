@@ -2,7 +2,7 @@
 <html xmlns:th="https://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>City Info List</title>
+    <title>M&B2 Trade Tool: Home</title>
 </head>
 <body>
 
@@ -19,8 +19,9 @@
         <td>2:</td>
         <td>
             <form method="POST" enctype="multipart/form-data" th:action="@{/api/city-info-list/upload}">
+                <span>upload city info from json file:</span>
                 <input type="file" name="file"/>
-                <input type="submit" value="Load from json file"/>
+                <input type="submit" value="Upload"/>
                 <span th:if="${message_load_from_json}" th:text="${message_load_from_json}"/>
             </form>
         </td>

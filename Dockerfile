@@ -4,4 +4,4 @@ COPY ${JAR_FILE} /app/app.jar
 WORKDIR /app
 VOLUME /app/db
 EXPOSE 8080
-ENTRYPOINT ["java","-jar","/app/app.jar"]
+ENTRYPOINT ["java","-jar","/app/app.jar","--spring.profiles.active=docker"]
