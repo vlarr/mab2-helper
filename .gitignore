@@ -33,3 +33,4 @@ build/
 .vscode/
 
 local/
+!local/db/readme.md
