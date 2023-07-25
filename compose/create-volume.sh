@@ -1,1 +1,1 @@
-docker volume create mab2h-db
+docker volume create --name mab2h-db
